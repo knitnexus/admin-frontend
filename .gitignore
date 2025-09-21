@@ -6,6 +6,16 @@ yarn-error.log*
 pnpm-debug.log*
 bun.lockb
 
+/node_modules
+
+# build outputs
+/.next
+/out
+/build
+
+# misc
+.env
+*.log
 # Logs
 logs
 *.log
