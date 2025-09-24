@@ -12,7 +12,7 @@ const {login, loading , error , user,fetchUser }= useAuthStore();
     interface CompanyForm {
         email: string;
         password: string;
-        // add all fields your form collects
+        // add all fields your for collects
     }
 
     const [form, setForm] = useState<CompanyForm>({

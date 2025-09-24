@@ -32,6 +32,7 @@ export async function middleware(req: NextRequest) {
             const res = await fetch(`${BACKEND_SERVICE_URL}/auth/admin`, {
                 headers: { cookie: `token=${token}` },
                 cache: "no-store",
+                credentials: "include",
             });
 
             if (!res.ok) {

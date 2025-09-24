@@ -18,6 +18,7 @@ export async function login(email: string, password: string) {
 
 export async function logout() {
     await fetch(`${BACKEND_SERVICE_URL}/auth/logout`, {
+        headers: { "Content-Type": "application/json" },
         method: "POST",
         credentials: "include",
     });
@@ -25,6 +26,8 @@ export async function logout() {
 
 export async function getMe() {
     const res = await fetch(`${BACKEND_SERVICE_URL}/auth/admin`, {
+        headers: { "Content-Type": "application/json" },
+        method: "GET",
         credentials: "include",
     });
 
