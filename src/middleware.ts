@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { BACKEND_SERVICE_URL } from "../config";
+const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
 
 const protectedRoutes = ["/dashboard", "/admin"];
 

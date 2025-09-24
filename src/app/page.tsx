@@ -5,6 +5,7 @@ import {useAuthStore} from "@/store/useAuthStore";
 import {useEffect, useState} from "react";
 import {usePathname, useRouter} from "next/navigation";
 export default function Home() {
+const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
 
 const {login, loading , error , user,fetchUser }= useAuthStore();
 

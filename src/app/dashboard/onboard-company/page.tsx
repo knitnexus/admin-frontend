@@ -6,9 +6,9 @@ import { Toaster, toast } from "sonner";
 import CompanyStep from "../../../components/CompanyStep";
 import MachineryStep, {MachineData} from "../../../components/MachineryStep";
 import ServiceStep from "../../../components/ServiceStep";
-import {BACKEND_SERVICE_URL} from "../../../../config";
-import { useRouter } from "next/navigation";
 
+import { useRouter } from "next/navigation";
+const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
 type Step = "company" | "machinery" | "service";
 
 interface LocationData {

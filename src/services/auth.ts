@@ -1,5 +1,5 @@
-import {BACKEND_SERVICE_URL} from "../../config";
 
+const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
 export async function login(email: string, password: string) {
     const res = await fetch(`${BACKEND_SERVICE_URL}/auth/login`, {
         method: "POST",
