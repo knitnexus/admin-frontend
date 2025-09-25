@@ -1,6 +1,10 @@
 
-const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
+const   BACKEND_SERVICE_URL=process.env.BACKEND_SERVICE_URL;
+const   NEXT_PUBLIC_BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
+
 export async function login(email: string, password: string) {
+    console.log("NEXT_PUBLIC_BACKEND_SERVICE_URL", NEXT_PUBLIC_BACKEND_SERVICE_URL);
+    console.log("BACKEND_SERVICE_URL", BACKEND_SERVICE_URL);
     const res = await fetch(`${BACKEND_SERVICE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
