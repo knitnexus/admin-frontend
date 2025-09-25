@@ -5,7 +5,7 @@ import {useAuthStore} from "@/store/useAuthStore";
 import {useEffect, useState} from "react";
 import {usePathname, useRouter} from "next/navigation";
 export default function Home() {
-const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
+
 
 const {login, loading , error , user,fetchUser }= useAuthStore();
 
@@ -21,7 +21,7 @@ const {login, loading , error , user,fetchUser }= useAuthStore();
     });
 
     const router = useRouter();
-const pathname=usePathname()
+    const pathname=usePathname()
     useEffect(() => {
         fetchUser();
     }, [fetchUser]);
@@ -29,19 +29,43 @@ const pathname=usePathname()
     // Redirect if logged in
     useEffect(() => {
         if (user && pathname === "/") {
-            router.push("/dashboard");
+            console.log("Redirecting authenticated user to dashboard");
+            router.replace("/dashboard");
         }
-    }, [user, pathname,router]);
+    }, [user, pathname, router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         setForm(prev => ({ ...prev, [e.target.id]: e.target.value }));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await login(form.email, form.password);
-    };
 
-  return  (
+        try {
+            const success = await login(form.email, form.password);
+
+            if (success) {
+                console.log("Login successful, redirecting...");
+                // Force redirect immediately after successful login
+                router.replace("/dashboard");
+            }
+            // If login fails, error will be shown via the store
+        } catch (err) {
+            console.error("Login error:", err);
+        }
+    };
+    if (loading && !error && !user) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-gray-600">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
+
+
+    return  (
         <div className="flex text-black min-h-screen flex-col md:flex-row">
             {/* Left Section */}
             <div className="flex flex-1 flex-col justify-center bg-gray-50 p-8">

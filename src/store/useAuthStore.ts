@@ -8,7 +8,7 @@ type AuthState = {
     user: User | null;
     loading: boolean;
     error: string | null;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<boolean>;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
 };
@@ -19,32 +19,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     error: null,
 
     // Helper for error handling
-    setError: (err: unknown) => {
-        const message = err instanceof Error ? err.message : "Something went wrong";
-        set({ error: message });
-    },
+
 
     login: async (email, password) => {
-        if (get().loading) return; // prevent multiple requests
+        if (get().loading) return false; // prevent multiple requests
         set({ loading: true, error: null });
 
         try {
             await authService.login(email, password); // backend sets HttpOnly cookie
             const user = await authService.getMe();
-            set({ user });
+            set({ user, loading: false, error: null });
+            return true
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Login failed";
-            set({ error: message });
-        } finally {
-            set({ loading: false });
+            set({ error: message, loading: false });
+            return false;
         }
     },
 
     logout: async () => {
+        set({ loading: true });
         try {
             await authService.logout();
         } finally {
-            set({ user: null });
+            set({ user: null, loading: false, error: null });
         }
     },
 

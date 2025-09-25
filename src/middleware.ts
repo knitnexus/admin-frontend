@@ -7,12 +7,13 @@ const protectedRoutes = ["/dashboard", "/admin"];
 export async function middleware(req: NextRequest) {
     const { pathname, searchParams } = req.nextUrl;
     const token = req.cookies.get("token")?.value;
-
+    console.log(`Middleware: ${pathname}, Token: ${!!token}, RSC: ${searchParams.has("_rsc")}`);
     // 1. Ignore Next.js internals and RSC fetches
     if (
         pathname.startsWith("/_next") ||
         pathname.startsWith("/api") ||
-        searchParams.has("_rsc") // ⬅️ IMPORTANT
+        searchParams.has("_rsc") ||
+        req.headers.get("rsc") === "1"
     ) {
         return NextResponse.next();
     }
