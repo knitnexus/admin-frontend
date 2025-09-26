@@ -99,9 +99,7 @@ export default function MachineryStep({ form, setForm, onNext, onBack }: Props) 
         setForm({ machinery: updatedMachinery });
     };
 
-    useEffect(()=>{
-        setForm({ machinery: [] });
-    },[form.unitType,setForm])
+
 
     const onCancel = () => setMachineCardOpen(false);
 
@@ -126,7 +124,7 @@ export default function MachineryStep({ form, setForm, onNext, onBack }: Props) 
 
             {errors && <p className="text-red-500 text-sm">{errors}</p>}
 
-            {/* Machine preview list */}
+
             {form.machinery.length > 0 && (
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">

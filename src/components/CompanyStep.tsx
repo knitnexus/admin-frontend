@@ -177,6 +177,7 @@ export default function CompanyStep({ form, setForm, onNext }: Props) {
                         Contact Number <span className="text-red-500">*</span>
                     </label>
                     <input
+                        type="number"
                         name="contactNumber"
                         value={form.contactNumber}
                         onChange={handleChange}

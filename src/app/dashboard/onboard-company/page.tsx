@@ -1,7 +1,7 @@
 // app/dashboard/onboard-company/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { Toaster, toast } from "sonner";
 import CompanyStep from "../../../components/CompanyStep";
 import MachineryStep, {MachineData} from "../../../components/MachineryStep";
@@ -53,7 +53,24 @@ export default function OnboardCompanyPage() {
     const [step, setStep] = useState<Step>("company");
     const [form, setForm] = useState<FormDataType>(initialFormData);
     const [loading, setLoading] = useState(false);
+    const prevUnitTypeRef = useRef<string>("");
 
+    // Effect to reset machinery when unitType changes
+    useEffect(() => {
+        if (prevUnitTypeRef.current && prevUnitTypeRef.current !== form.unitType && form.machinery.length > 0) {
+            // UnitType has changed and there's existing machinery data
+            setForm(prev => ({
+                ...prev,
+                machinery: []
+            }));
+
+            // Show a toast notification to inform the user
+            toast.info("Unit type changed - machinery data has been reset");
+        }
+
+        // Update the previous unitType reference
+        prevUnitTypeRef.current = form.unitType;
+    }, [form.unitType, form.machinery.length]);
     const nextStep = () => {
 
         if (step === "company") setStep("machinery");
