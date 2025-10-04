@@ -85,9 +85,9 @@ export default function Sidebar() {
 
             {/* Sidebar */}
             <aside
-                className={`fixed md:static top-0 left-0 h-full w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white z-50 transform transition-all duration-300 ease-out shadow-2xl
-                    ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-                    md:translate-x-0 md:shadow-none`}
+                className={`fixed top-0 left-0 h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white z-50 transform transition-all duration-300 ease-out shadow-2xl flex flex-col
+                    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+                    md:translate-x-0`}
             >
                 {/* Sidebar Header */}
                 <div className="flex items-center gap-3 p-6 border-b border-slate-700/50">
@@ -98,7 +98,7 @@ export default function Sidebar() {
                 </div>
 
                 {/* Navigation Items */}
-                <nav className="flex-1 h-screen py-6">
+                <nav className="flex-1 overflow-y-auto py-6">
                     <ul className="space-y-2 px-4">
                         {sidebarItems.map((item) => {
                             const IconComponent = item.icon
@@ -121,20 +121,23 @@ export default function Sidebar() {
                     </ul>
                 </nav>
 
-                <div className="w-full px-3 flex items-center">
-                    <button
-                        onClick={handleLogout}
-                        disabled={loading}
-                        className="m-auto cursor-pointer rounded-lg w-full bg-red-600 p-2 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? "Logging out..." : "Logout"}
-                    </button>
-                </div>
+                {/* Logout Button - Pushed to bottom */}
+                <div className="mt-auto">
+                    <div className="w-full px-4 pb-4">
+                        <button
+                            onClick={handleLogout}
+                            disabled={loading}
+                            className="cursor-pointer rounded-lg w-full bg-red-600 p-3 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {loading ? "Logging out..." : "Logout"}
+                        </button>
+                    </div>
 
-                {/* Sidebar Footer */}
-                <div className="p-4 border-t border-slate-700/50">
-                    <div className="text-xs text-slate-500 text-center">
-                        © 2024 Admin Panel
+                    {/* Sidebar Footer */}
+                    <div className="p-4 border-t border-slate-700/50">
+                        <div className="text-xs text-slate-500 text-center">
+                            © 2024 Admin Panel
+                        </div>
                     </div>
                 </div>
             </aside>
