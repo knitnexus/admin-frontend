@@ -1,12 +1,51 @@
-// app/dashboard/onboard-company/components/CompanyStep.tsx
+
 "use client";
 
 import React, { ChangeEvent, useState } from "react";
 import ImagePreview from "@/components/Dashboard/ImagePreview";
+import {unitTypes, workTypes,availableCertifications} from "@/lib/types/forms";
+import {reverseGeocode} from "@/services/geocoding";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("../components/map"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+      <div className="text-center">
+        <svg
+          className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <p className="text-sm text-gray-600">Loading map...</p>
+      </div>
+    </div>
+  ),
+});
 
 type LocationData = {
     latitude: number;
     longitude: number;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    address?: string;
+
 };
 
 interface FormProps {
@@ -29,47 +68,14 @@ type Props = {
     onNext: () => void;
 };
 
-const availableCertifications = [
-    "Import Export Certificate",
-    "ISO 9001",
-    "GOTS",
-    "Fair Trade",
-    "OEKO-TEX",
-    "SA8000",
-    "RCS",
-    "BCI Cotton",
-    "Sedex",
-    "OCS",
-    "GRS",
-];
 
-const workTypes = ["DOMESTIC_WORK", "EXPORT_WORK"];
-const unitTypes = [
-    "YARN_SPINNING",
-    "YARN_PROCESSING",
-    "WEAVING_UNIT",
-    "KNITTING_UNIT",
-    "DYEING_UNIT",
-    "FABRIC_PROCESSING_UNIT",
-    "FABRIC_FINISHING_UNIT",
-    "WASHING_UNIT",
-    "CUTTING_UNIT",
-    "COMPUTERIZED_EMBROIDERY_UNIT",
-    "MANUAL_EMBROIDERY_UNIT",
-    "FUSING_UNIT",
-    "PRINTING_UNIT",
-    "STITCHING_UNIT",
-    "CHECKING_UNIT",
-    "IRONING_PACKING_UNIT",
-    "KAJA_BUTTON_UNIT",
-    "MULTI_NEEDLE_DOUBLE_CHAIN_UNIT",
-    "OIL_REMOVING_MENDING_CENTER",
-    "PATTERN_MAKING_CENTER",
-    "FILM_SCREEN_MAKING_CENTER",
-];
+
+
+
 
 export default function CompanyStep({ form, setForm, onNext }: Props) {
     const [errors, setErrors] = useState<Partial<Record<keyof FormProps, string>>>({});
+    const [showMap, setShowMap] = useState(false);
 
     const validate = () => {
 
@@ -115,24 +121,40 @@ export default function CompanyStep({ form, setForm, onNext }: Props) {
             ? certs.filter((c) => c !== cert)
             : [...certs, cert];
 
-        // Pass the object directly to setForm, not a function
+
         setForm({ certifications: newCerts });
     }
     const handlePickLocation = () => {
-        if (!navigator.geolocation) {
-            alert("Geolocation not supported");
-            return;
+      if (typeof window === "undefined") return; // prevent SSR
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const kpo = reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          kpo.then((res) => {
+            const { city, state, pincode, address } = res;
+            setForm({
+              location: {
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                city: city?.toLowerCase(),
+                state,
+                pincode,
+                address,
+              },
+            });
+            console.log("Reverse geocoded address:", { form });
+          });
+
+          setErrors((prev) => ({ ...prev, location: undefined }));
+        },
+        (err) => {
+          console.error("Location error", err);
+          alert("Could not fetch location");
         }
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                setForm({ location: { latitude: pos.coords.latitude, longitude: pos.coords.longitude } });
-                setErrors((prev) => ({ ...prev, location: undefined }));
-            },
-            (err) => {
-                console.error("Location error", err);
-                alert("Could not fetch location");
-            }
-        );
+      );
     };
 
     const onNextClicked = () => {
@@ -389,34 +411,77 @@ export default function CompanyStep({ form, setForm, onNext }: Props) {
 
             </div>
 
-            {/* Location */}
+            {/* Location Section */}
             <div className="mt-8 space-y-4">
                 <label className="block text-sm font-semibold text-gray-700">
                     Location <span className="text-red-500">*</span>
                 </label>
+
+                {/* Action Buttons */}
                 <div className="flex items-center gap-4">
                     <button
                         type="button"
                         onClick={handlePickLocation}
-                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105"
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-md"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        Pick Current Location
+                        Use My Current Location
                     </button>
-                    {form.location && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-sm text-green-700 font-medium">
-                            Location: {form.location.latitude.toFixed(6)}, {form.location.longitude.toFixed(6)}
-                        </span>
-                        </div>
-                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => setShowMap(!showMap)}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-md"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                        {showMap ? 'Hide Map' : 'Pick on Map'}
+                    </button>
                 </div>
+
+                {/* Map Picker - Conditionally Rendered */}
+                {showMap && (
+                    <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <p className="text-sm text-gray-600 mb-3">Click on the map to select your location</p>
+                        <MapPicker
+                            onSelect={(lat, lng) => {
+                                reverseGeocode(lat, lng).then((res) => {
+                                    const { city, state, pincode, address } = res;
+                                    setForm({ location: { latitude: lat, longitude: lng, city:city?.toLowerCase(), state, pincode, address } });
+                                    setErrors((prev) => ({ ...prev, location: undefined }));
+                                });
+                            }}
+                            initial={
+                                form.location
+                                    ? { lat: form.location.latitude, lng: form.location.longitude }
+                                    : { lat: 20.5937, lng: 78.9629 }
+                            }
+                        />
+                    </div>
+                )}
+
+                {/* Location Display */}
+                {form.location && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800">
+                                📍 {form.location.city}, {form.location.state}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                                {form.location.address || `${form.location.latitude.toFixed(6)}, ${form.location.longitude.toFixed(6)}`}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Error Message */}
                 {errors.location && (
                     <p className="text-sm text-red-500 flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

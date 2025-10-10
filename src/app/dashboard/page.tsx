@@ -17,10 +17,10 @@ export default function DashboardPage() {
                     href="/dashboard/onboard-company"
                 />
                 <DashboardCard
-                    title="Send Notification"
+                    title="Create Job Post"
                     description="send a post requirement "
                     icon={Megaphone}
-                    href="/dashboard/onboard-company"
+                    href="/dashboard/jobpost"
                 />
             </div>
         </div>
