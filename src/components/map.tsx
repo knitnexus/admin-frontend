@@ -5,6 +5,7 @@ import { useState } from "react";
 
 type Props = {
     onSelect: (lat: number, lng: number) => void;
+    zoom?: number;
     initial?: { lat: number; lng: number };
 };
 
@@ -22,7 +23,7 @@ function LocationMarker({ onSelect }: { onSelect: (lat: number, lng: number) => 
     return position ? <Marker position={position}></Marker> : null;
 }
 
-export default function MapPicker({ onSelect, initial }: Props) {
+export default function MapPicker({ onSelect,zoom = 5, initial }: Props) {
 
 
     return (
@@ -30,7 +31,7 @@ export default function MapPicker({ onSelect, initial }: Props) {
         <MapContainer
           // @ts-ignore
           center={initial ?? { lat: 20.5937, lng: 78.9629 }} // default India
-          zoom={5}
+          zoom={zoom}
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
