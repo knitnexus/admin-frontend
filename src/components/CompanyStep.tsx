@@ -132,28 +132,29 @@ export default function CompanyStep({ form, setForm, onNext }: Props) {
       }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const kpo = reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          kpo.then((res) => {
-            const { city, state, pincode, address } = res;
-            setForm({
-              location: {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                city: city?.toLowerCase(),
-                state,
-                pincode,
-                address,
-              },
-            });
-            console.log("Reverse geocoded address:", { form });
-          });
+            const { latitude, longitude } = pos.coords;
 
-          setErrors((prev) => ({ ...prev, location: undefined }));
+            reverseGeocode(latitude, longitude).then((res) => {
+                const { city, state, pincode, address } = res;
+                setForm({
+                    location: { latitude, longitude, city: city?.toLowerCase(), state, pincode, address },
+                });
+                setErrors((prev) => ({ ...prev, location: undefined }));
+                setShowMap(true); // Auto-open map after location fetched
+            }).catch((err) => {
+                console.error("Reverse geocoding failed:", err);
+                setForm({
+                    location: { latitude, longitude, city: undefined, state: undefined, pincode: undefined, address: undefined },
+                });
+                setErrors((prev) => ({ ...prev, location: undefined }));
+                setShowMap(true);
+            });
+
+
+
+
         },
-        (err) => {
-          console.error("Location error", err);
-          alert("Could not fetch location");
-        }
+
       );
     };
 
@@ -460,6 +461,7 @@ export default function CompanyStep({ form, setForm, onNext }: Props) {
                                     ? { lat: form.location.latitude, lng: form.location.longitude }
                                     : { lat: 20.5937, lng: 78.9629 }
                             }
+                            zoom={form.location ? 15 : 5}
                         />
                     </div>
                 )}
