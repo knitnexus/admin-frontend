@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, { useState} from "react";
 
 import {MachineryForms} from "@/components/Forms";
 export type MachineData = string | number | boolean | MachineData[] | { [key: string]: MachineData };
@@ -80,83 +80,82 @@ const MachinePreview = ({ machine, index, onDelete }: {
 };
 
 export default function MachineryStep({ form, setForm, onNext, onBack }: Props) {
-    const [errors, setErrors] = useState<string>("");
-    const [machineCardOpen, setMachineCardOpen] = useState(false);
+  const [errors, setErrors] = useState<string>("");
+  const [machineCardOpen, setMachineCardOpen] = useState(false);
 
-    const onNextClicked = () => {
-        setErrors("");
-        onNext();
-    };
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+  const onNextClicked = () => {
+    setErrors("");
+    onNext();
+  };
+  // @ts-ignore
 
-    const handleAddMachine = (machine: any) => {
-        setForm({ machinery: [...form.machinery, machine] });
-        setMachineCardOpen(false);
-    };
+  const handleAddMachine = (machine: any) => {
+    setForm({ machinery: [...form.machinery, machine] });
+    setMachineCardOpen(false);
+  };
 
-    const handleDeleteMachine = (index: number) => {
-        const updatedMachinery = form.machinery.filter((_, i) => i !== index);
-        setForm({ machinery: updatedMachinery });
-    };
+  const handleDeleteMachine = (index: number) => {
+    const updatedMachinery = form.machinery.filter((_, i) => i !== index);
+    setForm({ machinery: updatedMachinery });
+  };
 
+  const onCancel = () => setMachineCardOpen(false);
 
+  const MachineForm = MachineryForms[form.unitType];
 
-    const onCancel = () => setMachineCardOpen(false);
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold mb-4">
+        Add {form.unitType.replace(/_/g, " ")} Machines
+      </h2>
 
-    const MachineForm = MachineryForms[form.unitType];
+      <button
+        onClick={() => setMachineCardOpen(true)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Add Machine
+      </button>
 
-    return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-bold mb-4">
-                Add {form.unitType.replace(/_/g, ' ')} Machines
-            </h2>
+      {machineCardOpen && MachineForm && (
+        <MachineForm onCancel={onCancel} setMachinery={handleAddMachine} />
+      )}
 
-            <button
-                onClick={() => setMachineCardOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-                Add Machine
-            </button>
+      {errors && <p className="text-red-500 text-sm">{errors}</p>}
 
-            {machineCardOpen && MachineForm && (
-                <MachineForm onCancel={onCancel} setMachinery={handleAddMachine} />
-            )}
-
-            {errors && <p className="text-red-500 text-sm">{errors}</p>}
-
-
-            {form.machinery.length > 0 && (
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-800">Machines Added ({form.machinery.length})</h4>
-                    </div>
-                    <div className="space-y-2">
-                        {form.machinery.map((machine, i) => (
-                            <MachinePreview
-                                key={i}
-                                machine={machine}
-                                index={i}
-                                onDelete={handleDeleteMachine}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            <div className="flex justify-between pt-6">
-                <button
-                    onClick={onBack}
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                    Back
-                </button>
-                <button
-                    onClick={onNextClicked}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                    Next
-                </button>
-            </div>
+      {form.machinery.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-gray-800">
+              Machines Added ({form.machinery.length})
+            </h4>
+          </div>
+          <div className="space-y-2">
+            {form.machinery.map((machine, i) => (
+              <MachinePreview
+                key={i}
+                machine={machine}
+                index={i}
+                onDelete={handleDeleteMachine}
+              />
+            ))}
+          </div>
         </div>
-    );
+      )}
+
+      <div className="flex justify-between pt-6">
+        <button
+          onClick={onBack}
+          className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+        >
+          Back
+        </button>
+        <button
+          onClick={onNextClicked}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
 }

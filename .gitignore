@@ -4,7 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
-
+CLAUDE.md
 # testing
 /coverage
 
@@ -34,6 +34,8 @@ yarn-error.log*
 # vercel
 .vercel
 
+ CLAUDE.md
 # typescript
+
 *.tsbuildinfo
 next-env.d.ts

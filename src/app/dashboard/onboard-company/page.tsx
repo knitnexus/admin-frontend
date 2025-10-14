@@ -8,13 +8,17 @@ import MachineryStep, {MachineData} from "../../../components/MachineryStep";
 import ServiceStep from "../../../components/ServiceStep";
 
 import { useRouter } from "next/navigation";
-const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL;
+const   BACKEND_SERVICE_URL=process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL||"";
 type Step = "company" | "machinery" | "service";
 
 interface LocationData {
 
     latitude: number;
     longitude: number;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    address?: string;
 }
 
 export interface FormDataType {
@@ -153,7 +157,6 @@ export default function OnboardCompanyPage() {
             <div className="mb-4">
                 <p>Step {step === "company" ? 1 : step === "machinery" ? 2 : 3} / 3</p>
             </div>
-
             {step === "company" && (
                 <CompanyStep
                     form={form}
