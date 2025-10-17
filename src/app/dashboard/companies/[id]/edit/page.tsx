@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import {
     Building2,
     ArrowLeft,
@@ -15,7 +16,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -145,6 +145,7 @@ const EditCompanyPage = () => {
         if (companyId) {
             fetchCompany();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [companyId]);
 
     const fetchCompany = async () => {
@@ -475,9 +476,11 @@ const EditCompanyPage = () => {
                                         <Label htmlFor="logo">Company Logo</Label>
                                         <div className="flex items-center gap-4">
                                             {companyLogoPreview && (
-                                                <img
+                                                <Image
                                                     src={companyLogoPreview}
                                                     alt="Logo preview"
+                                                    width={64}
+                                                    height={64}
                                                     className="h-16 w-16 rounded-lg object-cover border"
                                                 />
                                             )}
@@ -686,7 +689,7 @@ const EditCompanyPage = () => {
                                     </p>
                                 ) : machinery.length === 0 ? (
                                     <p className="text-center text-muted-foreground py-8">
-                                        No machinery added yet. Click "Add Machine" to start.
+                                        No machinery added yet. Click &quot;Add Machine&quot; to start.
                                     </p>
                                 ) : (
                                     machinery.map((machine, index) => (
@@ -742,7 +745,7 @@ const EditCompanyPage = () => {
                             <CardContent className="space-y-4">
                                 {services.length === 0 ? (
                                     <p className="text-center text-muted-foreground py-8">
-                                        No services added yet. Click "Add Service" to start.
+                                        No services added yet. Click &quot;Add Service&quot; to start.
                                     </p>
                                 ) : (
                                     services.map((service, index) => (
@@ -809,9 +812,11 @@ const EditCompanyPage = () => {
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             {existingUnitImages.map((image, index) => (
                                                 <div key={index} className="relative group">
-                                                    <img
+                                                    <Image
                                                         src={image}
                                                         alt={`Unit ${index + 1}`}
+                                                        width={200}
+                                                        height={200}
                                                         className="w-full aspect-square object-cover rounded-lg border"
                                                     />
                                                     <Button
@@ -835,9 +840,11 @@ const EditCompanyPage = () => {
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             {unitImages.map((file, index) => (
                                                 <div key={index} className="relative group">
-                                                    <img
+                                                    <Image
                                                         src={URL.createObjectURL(file)}
                                                         alt={`New ${index + 1}`}
+                                                        width={200}
+                                                        height={200}
                                                         className="w-full aspect-square object-cover rounded-lg border"
                                                     />
                                                     <Button

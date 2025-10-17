@@ -19,7 +19,6 @@ import MultiNeedleDoubleChainMachine from "./MultiNeedleDoubleChainMachineForm";
 import OilRemovingMendingCenterMachine from "./OilRemovingMendingCenterMachineForm";
 import PatternMakinigCenterMachine from "./PatternMakinigCenterMachineForm";
 import FilmScreenMakingCenterMachine from "./FilmScreenMakingCenterMachineForm";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const MachineryForms: Record<string, React.ComponentType<any>> = {
 

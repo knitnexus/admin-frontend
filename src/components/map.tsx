@@ -8,7 +8,7 @@ import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
-let DefaultIcon = L.icon({
+const DefaultIcon = L.icon({
     iconUrl: icon.src,
     shadowUrl: iconShadow.src,
     iconSize: [25, 41],
@@ -33,7 +33,7 @@ function MapViewController({ center, zoom }: { center: { lat: number; lng: numbe
                 duration: 0.5
             });
         }
-    }, [center.lat, center.lng, zoom, map]);
+    }, [center, zoom, map]);
 
     return null;
 }
@@ -52,7 +52,7 @@ function LocationMarker({
         if (initial) {
             setPosition(initial);
         }
-    }, [initial?.lat, initial?.lng]);
+    }, [initial]);
 
     useMapEvents({
         click(e) {

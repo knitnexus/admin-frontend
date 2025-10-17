@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import {
     Building2,
     MapPin,
@@ -34,14 +35,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { toast } from "sonner";
 
 const BACKEND_SERVICE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL || "";
@@ -108,6 +101,7 @@ const CompanyDetailPage = () => {
         if (companyId) {
             fetchCompany();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [companyId]);
 
     const fetchCompany = async () => {
@@ -422,13 +416,15 @@ const CompanyDetailPage = () => {
                                         {company.unitImages.map((image, index) => (
                                             <div
                                                 key={index}
-                                                className="aspect-square rounded-lg overflow-hidden border bg-muted"
+                                                className="aspect-square rounded-lg overflow-hidden border bg-muted cursor-pointer"
+                                                onClick={() => window.open(image, "_blank")}
                                             >
-                                                <img
+                                                <Image
                                                     src={image}
                                                     alt={`Unit ${index + 1}`}
-                                                    className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                                                    onClick={() => window.open(image, "_blank")}
+                                                    width={300}
+                                                    height={300}
+                                                    className="w-full h-full object-cover hover:scale-105 transition-transform"
                                                 />
                                             </div>
                                         ))}
