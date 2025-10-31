@@ -13,6 +13,7 @@ import {
     Trash2,
     Upload,
     MapPin,
+    Edit as EditIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,6 +139,8 @@ const EditCompanyPage = () => {
     const [existingUnitImages, setExistingUnitImages] = useState<string[]>([]);
     const [machinery, setMachinery] = useState<any[]>([]);
     const [services, setServices] = useState<{ title: string; description: string }[]>([]);
+    const [editingMachineryIndex, setEditingMachineryIndex] = useState<number | null>(null);
+    const [showMachineryForm, setShowMachineryForm] = useState(false);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -207,7 +210,13 @@ const EditCompanyPage = () => {
     };
 
     const removeExistingImage = (index: number) => {
-        setExistingUnitImages((prev) => prev.filter((_, i) => i !== index));
+        // Note: Removing existing images is currently not supported by the backend
+        // The backend appends new images to existing ones but doesn't have a deletion mechanism
+        toast.warning("Removing existing images is not currently supported", {
+            description: "You can only add new images. Contact support to remove existing images.",
+        });
+        // Uncomment below when backend supports image deletion:
+        // setExistingUnitImages((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleCertificationToggle = (cert: string) => {
@@ -227,19 +236,41 @@ const EditCompanyPage = () => {
     };
 
     const addMachinery = () => {
-        setMachinery((prev) => [...prev, {}]);
+        setEditingMachineryIndex(null);
+        setShowMachineryForm(true);
+    };
+
+    const editMachinery = (index: number) => {
+        setEditingMachineryIndex(index);
+        setShowMachineryForm(true);
     };
 
     const removeMachinery = (index: number) => {
         setMachinery((prev) => prev.filter((_, i) => i !== index));
+        toast.success("Machinery removed");
     };
 
-    const updateMachinery = (index: number, data: any) => {
-        setMachinery((prev) => {
-            const updated = [...prev];
-            updated[index] = data;
-            return updated;
-        });
+    const handleMachinerySave = (data: any) => {
+        if (editingMachineryIndex !== null) {
+            // Update existing machinery
+            setMachinery((prev) => {
+                const updated = [...prev];
+                updated[editingMachineryIndex] = data;
+                return updated;
+            });
+            toast.success("Machinery updated");
+        } else {
+            // Add new machinery
+            setMachinery((prev) => [...prev, data]);
+            toast.success("Machinery added");
+        }
+        setShowMachineryForm(false);
+        setEditingMachineryIndex(null);
+    };
+
+    const handleMachineryCancel = () => {
+        setShowMachineryForm(false);
+        setEditingMachineryIndex(null);
     };
 
     const addService = () => {
@@ -324,11 +355,14 @@ const EditCompanyPage = () => {
                 formData.append("services", JSON.stringify(validServices));
             }
 
-            const response = await fetch(`${BACKEND_SERVICE_URL}/companies/${companyId}`, {
+            const response = await fetch(
+              `${BACKEND_SERVICE_URL}/companies/${companyId}`,
+              {
                 method: "PUT",
                 credentials: "include",
                 body: formData,
-            });
+              }
+            );
 
             const data = await response.json();
 
@@ -676,7 +710,7 @@ const EditCompanyPage = () => {
                                             Manage machinery for {unitType.replace(/_/g, " ")}
                                         </CardDescription>
                                     </div>
-                                    <Button onClick={addMachinery} disabled={!unitType}>
+                                    <Button onClick={addMachinery} disabled={!unitType || showMachineryForm}>
                                         <Plus className="h-4 w-4 mr-2" />
                                         Add Machine
                                     </Button>
@@ -687,41 +721,74 @@ const EditCompanyPage = () => {
                                     <p className="text-center text-muted-foreground py-8">
                                         Please select a unit type first
                                     </p>
-                                ) : machinery.length === 0 ? (
-                                    <p className="text-center text-muted-foreground py-8">
-                                        No machinery added yet. Click &quot;Add Machine&quot; to start.
-                                    </p>
                                 ) : (
-                                    machinery.map((machine, index) => (
-                                        <Card key={index} className="border-l-4 border-l-primary">
-                                            <CardHeader>
-                                                <div className="flex items-center justify-between">
-                                                    <CardTitle className="text-base">
-                                                        Machine #{index + 1}
-                                                    </CardTitle>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => removeMachinery(index)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                    </Button>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent>
-                                                {MachineForm ? (
+                                    <>
+                                        {/* Machinery Form for Add/Edit */}
+                                        {showMachineryForm && MachineForm && (
+                                            <Card className="border-2 border-primary">
+                                                <CardContent className="pt-6">
                                                     <MachineForm
-                                                        form={machine}
-                                                        setForm={(data: any) => updateMachinery(index, data)}
+                                                        machinery={editingMachineryIndex !== null ? machinery[editingMachineryIndex] : undefined}
+                                                        setMachinery={handleMachinerySave}
+                                                        onCancel={handleMachineryCancel}
                                                     />
-                                                ) : (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        No form available for this unit type
-                                                    </p>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    ))
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {/* Machinery List */}
+                                        {machinery.length === 0 ? (
+                                            <p className="text-center text-muted-foreground py-8">
+                                                No machinery added yet. Click &quot;Add Machine&quot; to start.
+                                            </p>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {machinery.map((machine, index) => (
+                                                    <Card key={index} className="border-l-4 border-l-primary">
+                                                        <CardContent className="pt-6">
+                                                            <div className="flex items-start justify-between">
+                                                                <div className="flex-1">
+                                                                    <h4 className="font-semibold text-base mb-3">
+                                                                        Machine #{index + 1}
+                                                                    </h4>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                                                        {Object.entries(machine).slice(0, 6).map(([key, value]) => (
+                                                                            <div key={key}>
+                                                                                <span className="text-muted-foreground">
+                                                                                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                                                                                </span>{" "}
+                                                                                <span className="font-medium">
+                                                                                    {Array.isArray(value) ? value.join(", ") : String(value)}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-2 ml-4">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                        onClick={() => editMachinery(index)}
+                                                                        disabled={showMachineryForm}
+                                                                    >
+                                                                        <EditIcon className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => removeMachinery(index)}
+                                                                        disabled={showMachineryForm}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </CardContent>
                         </Card>
