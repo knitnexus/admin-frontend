@@ -58,20 +58,21 @@ interface Service {
 }
 
 interface Company {
-    id: string;
-    name: string;
-    companyLogo?: string;
-    contactNumber: string;
-    gstNumber?: string;
-    aboutCompany?: string;
-    unitType: string;
-    workType: string;
-    unitSqFeet: number;
-    location: LocationData;
-    certifications: string[];
-    unitImages: string[];
-    machinery: Machinery[];
-    services: Service[];
+  id: string;
+  name: string;
+  companyLogo?: string;
+  contactNumber: string;
+  gstNumber?: string;
+  aboutCompany?: string;
+  unitType: string;
+  workType: string;
+  productionCapacity: number;
+  unitSqFeet: number;
+  location: LocationData;
+  certifications: string[];
+  unitImages: string[];
+  machinery: Machinery[];
+  services: Service[];
 }
 
 const unitTypes = [
@@ -129,6 +130,7 @@ const EditCompanyPage = () => {
     const [gstNumber, setGstNumber] = useState("");
     const [aboutCompany, setAboutCompany] = useState("");
     const [unitType, setUnitType] = useState("");
+    const [productionCapacity, setProductionCapacity] = useState("");
     const [workType, setWorkType] = useState("");
     const [unitSqFeet, setUnitSqFeet] = useState("");
     const [certifications, setCertifications] = useState<string[]>([]);
@@ -172,6 +174,7 @@ const EditCompanyPage = () => {
                 setAboutCompany(company.aboutCompany || "");
                 setUnitType(company.unitType);
                 setWorkType(company.workType);
+                setProductionCapacity(company.productionCapacity?.toString() || "");
                 setUnitSqFeet(company.unitSqFeet.toString());
                 setCertifications(company.certifications);
                 setLocation(company.location);
@@ -298,6 +301,8 @@ const EditCompanyPage = () => {
         if (!workType) newErrors.workType = "Work type is required";
         if (!unitSqFeet || parseInt(unitSqFeet) <= 0)
             newErrors.unitSqFeet = "Valid unit square feet is required";
+        if (!productionCapacity || parseInt(productionCapacity) <= 0)
+            newErrors.productionCapacity = "Valid production capacity is required";
         if (!location) newErrors.location = "Location is required";
 
         setErrors(newErrors);
@@ -323,6 +328,7 @@ const EditCompanyPage = () => {
             formData.append("workType", workType);
             formData.append("unitType", unitType);
             formData.append("unitSqFeet", unitSqFeet);
+            formData.append("productionCapacity", productionCapacity);
 
             // Location
             if (location) {
@@ -397,560 +403,657 @@ const EditCompanyPage = () => {
     const MachineForm = unitType ? MachineryForms[unitType] : null;
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="border-b bg-card sticky top-0 z-10">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => router.push(`/dashboard/companies/${companyId}`)}
-                            >
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                                    <Building2 className="h-6 w-6" />
-                                    Edit Company
-                                </h1>
-                                <p className="text-sm text-muted-foreground">{name}</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => router.push(`/dashboard/companies/${companyId}`)}
-                                disabled={submitting}
-                            >
-                                <X className="h-4 w-4 mr-2" />
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSubmit} disabled={submitting}>
-                                {submitting ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Save Changes
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-card sticky top-0 z-10">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    router.push(`/dashboard/companies/${companyId}`)
+                  }
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                    <Building2 className="h-6 w-6" />
+                    Edit Company
+                  </h1>
+                  <p className="text-sm text-muted-foreground">{name}</p>
                 </div>
-            </header>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(`/dashboard/companies/${companyId}`)
+                  }
+                  disabled={submitting}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit} disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
 
-            {/* Main Content */}
-            <main className="container mx-auto px-6 py-8">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-6">
-                        <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                        <TabsTrigger value="unit">Unit Details</TabsTrigger>
-                        <TabsTrigger value="location">Location</TabsTrigger>
-                        <TabsTrigger value="machinery">Machinery</TabsTrigger>
-                        <TabsTrigger value="services">Services</TabsTrigger>
-                        <TabsTrigger value="images">Images</TabsTrigger>
-                    </TabsList>
+        {/* Main Content */}
+        <main className="container mx-auto px-6 py-8">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+          >
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="unit">Unit Details</TabsTrigger>
+              <TabsTrigger value="location">Location</TabsTrigger>
+              <TabsTrigger value="machinery">Machinery</TabsTrigger>
+              <TabsTrigger value="services">Services</TabsTrigger>
+              <TabsTrigger value="images">Images</TabsTrigger>
+            </TabsList>
 
-                    {/* Basic Info Tab */}
-                    <TabsContent value="basic">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Basic Information</CardTitle>
-                                <CardDescription>Update company basic details</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name">
-                                            Company Name <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="name"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            placeholder="Enter company name"
-                                        />
-                                        {errors.name && (
-                                            <p className="text-sm text-red-500">{errors.name}</p>
-                                        )}
-                                    </div>
+            {/* Basic Info Tab */}
+            <TabsContent value="basic">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>
+                    Update company basic details
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">
+                        Company Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter company name"
+                      />
+                      {errors.name && (
+                        <p className="text-sm text-red-500">{errors.name}</p>
+                      )}
+                    </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contactNumber">
-                                            Contact Number <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="contactNumber"
-                                            value={contactNumber}
-                                            onChange={(e) => setContactNumber(e.target.value)}
-                                            placeholder="Enter contact number"
-                                        />
-                                        {errors.contactNumber && (
-                                            <p className="text-sm text-red-500">{errors.contactNumber}</p>
-                                        )}
-                                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contactNumber">
+                        Contact Number <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="contactNumber"
+                        value={contactNumber}
+                        onChange={(e) => setContactNumber(e.target.value)}
+                        placeholder="Enter contact number"
+                      />
+                      {errors.contactNumber && (
+                        <p className="text-sm text-red-500">
+                          {errors.contactNumber}
+                        </p>
+                      )}
+                    </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="gstNumber">GST Number</Label>
-                                        <Input
-                                            id="gstNumber"
-                                            value={gstNumber}
-                                            onChange={(e) => setGstNumber(e.target.value)}
-                                            placeholder="Enter GST number (optional)"
-                                        />
-                                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gstNumber">GST Number</Label>
+                      <Input
+                        id="gstNumber"
+                        value={gstNumber}
+                        onChange={(e) => setGstNumber(e.target.value)}
+                        placeholder="Enter GST number (optional)"
+                      />
+                    </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="logo">Company Logo</Label>
-                                        <div className="flex items-center gap-4">
-                                            {companyLogoPreview && (
-                                                <Image
-                                                    src={companyLogoPreview}
-                                                    alt="Logo preview"
-                                                    width={64}
-                                                    height={64}
-                                                    className="h-16 w-16 rounded-lg object-cover border"
-                                                />
-                                            )}
-                                            <Input
-                                                id="logo"
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleLogoChange}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="logo">Company Logo</Label>
+                      <div className="flex items-center gap-4">
+                        {companyLogoPreview && (
+                          <Image
+                            src={companyLogoPreview}
+                            alt="Logo preview"
+                            width={64}
+                            height={64}
+                            className="h-16 w-16 rounded-lg object-cover border"
+                          />
+                        )}
+                        <Input
+                          id="logo"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="about">About Company</Label>
-                                    <Textarea
-                                        id="about"
-                                        value={aboutCompany}
-                                        onChange={(e) => setAboutCompany(e.target.value)}
-                                        placeholder="Tell us about your company..."
-                                        rows={4}
-                                    />
-                                </div>
-                            </CardContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="about">About Company</Label>
+                    <Textarea
+                      id="about"
+                      value={aboutCompany}
+                      onChange={(e) => setAboutCompany(e.target.value)}
+                      placeholder="Tell us about your company..."
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Unit Details Tab */}
+            <TabsContent value="unit">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Unit Details</CardTitle>
+                  <CardDescription>
+                    Configure unit specifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="unitType">
+                        Unit Type <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={unitType}
+                        onValueChange={handleUnitTypeChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select unit type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unitTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type.replace(/_/g, " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.unitType && (
+                        <p className="text-sm text-red-500">
+                          {errors.unitType}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="workType">
+                        Work Type <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={workType} onValueChange={setWorkType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select work type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {workTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type.replace(/_/g, " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.workType && (
+                        <p className="text-sm text-red-500">
+                          {errors.workType}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="unitSqFeet">
+                        Unit Area (sq ft){" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="unitSqFeet"
+                        type="number"
+                        value={unitSqFeet}
+                        onChange={(e) => setUnitSqFeet(e.target.value)}
+                        placeholder="Enter area in square feet"
+                      />
+                      {errors.unitSqFeet && (
+                        <p className="text-sm text-red-500">
+                          {errors.unitSqFeet}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Production Capacity  */}
+                    <div className="space-y-2">
+                      <Label htmlFor="unitSqFeet">
+                        Production Capacity (weekly){" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="productionCapacity"
+                        type="number"
+                        value={productionCapacity}
+                        onChange={(e) => setProductionCapacity(e.target.value)}
+                        placeholder="production output weekly"
+                      />
+                      {errors.productionCapacity && (
+                        <p className="text-sm text-red-500">
+                          {errors.productionCapacity}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <Label>Certifications</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {availableCertifications.map((cert) => (
+                        <div key={cert} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={cert}
+                            checked={certifications.includes(cert)}
+                            onCheckedChange={() =>
+                              handleCertificationToggle(cert)
+                            }
+                          />
+                          <label
+                            htmlFor={cert}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {cert}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Location Tab */}
+            <TabsContent value="location">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Location <span className="text-red-500">*</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Current company location information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Selected Location Display */}
+                  {location ? (
+                    <div className="p-4 bg-muted rounded-lg space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span>Current Location</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {location.city && (
+                          <div>
+                            <span className="text-muted-foreground">City:</span>{" "}
+                            <span className="font-medium">{location.city}</span>
+                          </div>
+                        )}
+                        {location.state && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              State:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {location.state}
+                            </span>
+                          </div>
+                        )}
+                        {location.pincode && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Pincode:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {location.pincode}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-muted-foreground">
+                            Coordinates:
+                          </span>{" "}
+                          <span className="font-medium">
+                            {location.latitude.toFixed(6)},{" "}
+                            {location.longitude.toFixed(6)}
+                          </span>
+                        </div>
+                      </div>
+                      {location.address && (
+                        <div className="text-sm pt-2 border-t">
+                          <span className="text-muted-foreground">
+                            Address:
+                          </span>{" "}
+                          <span className="font-medium">
+                            {location.address}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <MapPin className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No location data available</p>
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {errors.location && (
+                    <p className="text-sm text-destructive">
+                      {errors.location}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Machinery Tab */}
+            <TabsContent value="machinery">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Machinery</CardTitle>
+                      <CardDescription>
+                        Manage machinery for {unitType.replace(/_/g, " ")}
+                      </CardDescription>
+                    </div>
+                    <Button
+                      onClick={addMachinery}
+                      disabled={!unitType || showMachineryForm}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Machine
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {!unitType ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Please select a unit type first
+                    </p>
+                  ) : (
+                    <>
+                      {/* Machinery Form for Add/Edit */}
+                      {showMachineryForm && MachineForm && (
+                        <Card className="border-2 border-primary">
+                          <CardContent className="pt-6">
+                            <MachineForm
+                              machinery={
+                                editingMachineryIndex !== null
+                                  ? machinery[editingMachineryIndex]
+                                  : undefined
+                              }
+                              setMachinery={handleMachinerySave}
+                              onCancel={handleMachineryCancel}
+                            />
+                          </CardContent>
                         </Card>
-                    </TabsContent>
+                      )}
 
-                    {/* Unit Details Tab */}
-                    <TabsContent value="unit">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Unit Details</CardTitle>
-                                <CardDescription>Configure unit specifications</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="unitType">
-                                            Unit Type <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Select value={unitType} onValueChange={handleUnitTypeChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select unit type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {unitTypes.map((type) => (
-                                                    <SelectItem key={type} value={type}>
-                                                        {type.replace(/_/g, " ")}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.unitType && (
-                                            <p className="text-sm text-red-500">{errors.unitType}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="workType">
-                                            Work Type <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Select value={workType} onValueChange={setWorkType}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select work type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {workTypes.map((type) => (
-                                                    <SelectItem key={type} value={type}>
-                                                        {type.replace(/_/g, " ")}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.workType && (
-                                            <p className="text-sm text-red-500">{errors.workType}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="unitSqFeet">
-                                            Unit Area (sq ft) <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="unitSqFeet"
-                                            type="number"
-                                            value={unitSqFeet}
-                                            onChange={(e) => setUnitSqFeet(e.target.value)}
-                                            placeholder="Enter area in square feet"
-                                        />
-                                        {errors.unitSqFeet && (
-                                            <p className="text-sm text-red-500">{errors.unitSqFeet}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div className="space-y-3">
-                                    <Label>Certifications</Label>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                        {availableCertifications.map((cert) => (
-                                            <div key={cert} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={cert}
-                                                    checked={certifications.includes(cert)}
-                                                    onCheckedChange={() => handleCertificationToggle(cert)}
-                                                />
-                                                <label
-                                                    htmlFor={cert}
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    {cert}
-                                                </label>
-                                            </div>
+                      {/* Machinery List */}
+                      {machinery.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          No machinery added yet. Click &quot;Add Machine&quot;
+                          to start.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {machinery.map((machine, index) => (
+                            <Card
+                              key={index}
+                              className="border-l-4 border-l-primary"
+                            >
+                              <CardContent className="pt-6">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-base mb-3">
+                                      Machine #{index + 1}
+                                    </h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                      {Object.entries(machine)
+                                        .slice(0, 6)
+                                        .map(([key, value]) => (
+                                          <div key={key}>
+                                            <span className="text-muted-foreground">
+                                              {key
+                                                .replace(/([A-Z])/g, " $1")
+                                                .trim()}
+                                              :
+                                            </span>{" "}
+                                            <span className="font-medium">
+                                              {Array.isArray(value)
+                                                ? value.join(", ")
+                                                : String(value)}
+                                            </span>
+                                          </div>
                                         ))}
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Location Tab */}
-                    <TabsContent value="location">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Location <span className="text-red-500">*</span></CardTitle>
-                                <CardDescription>Current company location information</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {/* Selected Location Display */}
-                                {location ? (
-                                    <div className="p-4 bg-muted rounded-lg space-y-2">
-                                        <div className="flex items-center gap-2 text-sm font-medium">
-                                            <MapPin className="h-4 w-4 text-primary" />
-                                            <span>Current Location</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                            {location.city && (
-                                                <div>
-                                                    <span className="text-muted-foreground">City:</span>{" "}
-                                                    <span className="font-medium">{location.city}</span>
-                                                </div>
-                                            )}
-                                            {location.state && (
-                                                <div>
-                                                    <span className="text-muted-foreground">State:</span>{" "}
-                                                    <span className="font-medium">{location.state}</span>
-                                                </div>
-                                            )}
-                                            {location.pincode && (
-                                                <div>
-                                                    <span className="text-muted-foreground">Pincode:</span>{" "}
-                                                    <span className="font-medium">{location.pincode}</span>
-                                                </div>
-                                            )}
-                                            <div>
-                                                <span className="text-muted-foreground">Coordinates:</span>{" "}
-                                                <span className="font-medium">
-                                                    {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        {location.address && (
-                                            <div className="text-sm pt-2 border-t">
-                                                <span className="text-muted-foreground">Address:</span>{" "}
-                                                <span className="font-medium">{location.address}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="p-8 text-center text-muted-foreground">
-                                        <MapPin className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                        <p>No location data available</p>
-                                    </div>
-                                )}
-
-                                {/* Error Message */}
-                                {errors.location && (
-                                    <p className="text-sm text-destructive">{errors.location}</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Machinery Tab */}
-                    <TabsContent value="machinery">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle>Machinery</CardTitle>
-                                        <CardDescription>
-                                            Manage machinery for {unitType.replace(/_/g, " ")}
-                                        </CardDescription>
-                                    </div>
-                                    <Button onClick={addMachinery} disabled={!unitType || showMachineryForm}>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add Machine
+                                  </div>
+                                  <div className="flex gap-2 ml-4">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => editMachinery(index)}
+                                      disabled={showMachineryForm}
+                                    >
+                                      <EditIcon className="h-4 w-4" />
                                     </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {!unitType ? (
-                                    <p className="text-center text-muted-foreground py-8">
-                                        Please select a unit type first
-                                    </p>
-                                ) : (
-                                    <>
-                                        {/* Machinery Form for Add/Edit */}
-                                        {showMachineryForm && MachineForm && (
-                                            <Card className="border-2 border-primary">
-                                                <CardContent className="pt-6">
-                                                    <MachineForm
-                                                        machinery={editingMachineryIndex !== null ? machinery[editingMachineryIndex] : undefined}
-                                                        setMachinery={handleMachinerySave}
-                                                        onCancel={handleMachineryCancel}
-                                                    />
-                                                </CardContent>
-                                            </Card>
-                                        )}
-
-                                        {/* Machinery List */}
-                                        {machinery.length === 0 ? (
-                                            <p className="text-center text-muted-foreground py-8">
-                                                No machinery added yet. Click &quot;Add Machine&quot; to start.
-                                            </p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {machinery.map((machine, index) => (
-                                                    <Card key={index} className="border-l-4 border-l-primary">
-                                                        <CardContent className="pt-6">
-                                                            <div className="flex items-start justify-between">
-                                                                <div className="flex-1">
-                                                                    <h4 className="font-semibold text-base mb-3">
-                                                                        Machine #{index + 1}
-                                                                    </h4>
-                                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                                                                        {Object.entries(machine).slice(0, 6).map(([key, value]) => (
-                                                                            <div key={key}>
-                                                                                <span className="text-muted-foreground">
-                                                                                    {key.replace(/([A-Z])/g, ' $1').trim()}:
-                                                                                </span>{" "}
-                                                                                <span className="font-medium">
-                                                                                    {Array.isArray(value) ? value.join(", ") : String(value)}
-                                                                                </span>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex gap-2 ml-4">
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="icon"
-                                                                        onClick={() => editMachinery(index)}
-                                                                        disabled={showMachineryForm}
-                                                                    >
-                                                                        <EditIcon className="h-4 w-4" />
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        onClick={() => removeMachinery(index)}
-                                                                        disabled={showMachineryForm}
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Services Tab */}
-                    <TabsContent value="services">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle>Services</CardTitle>
-                                        <CardDescription>Services offered by your company</CardDescription>
-                                    </div>
-                                    <Button onClick={addService}>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add Service
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeMachinery(index)}
+                                      disabled={showMachineryForm}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
+                                  </div>
                                 </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {services.length === 0 ? (
-                                    <p className="text-center text-muted-foreground py-8">
-                                        No services added yet. Click &quot;Add Service&quot; to start.
-                                    </p>
-                                ) : (
-                                    services.map((service, index) => (
-                                        <Card key={index} className="border-l-4 border-l-blue-500">
-                                            <CardContent className="pt-6">
-                                                <div className="space-y-4">
-                                                    <div className="flex items-start justify-between gap-4">
-                                                        <div className="flex-1 space-y-4">
-                                                            <div className="space-y-2">
-                                                                <Label>Service Title</Label>
-                                                                <Input
-                                                                    value={service.title}
-                                                                    onChange={(e) =>
-                                                                        updateService(index, "title", e.target.value)
-                                                                    }
-                                                                    placeholder="e.g., Custom Embroidery"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <Label>Description</Label>
-                                                                <Textarea
-                                                                    value={service.description}
-                                                                    onChange={(e) =>
-                                                                        updateService(
-                                                                            index,
-                                                                            "description",
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    placeholder="Describe the service..."
-                                                                    rows={3}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => removeService(index)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                    {/* Images Tab */}
-                    <TabsContent value="images">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Unit Images</CardTitle>
-                                <CardDescription>Upload images of your facility</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Existing Images */}
-                                {existingUnitImages.length > 0 && (
-                                    <div className="space-y-3">
-                                        <Label>Current Images</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {existingUnitImages.map((image, index) => (
-                                                <div key={index} className="relative group">
-                                                    <Image
-                                                        src={image}
-                                                        alt={`Unit ${index + 1}`}
-                                                        width={200}
-                                                        height={200}
-                                                        className="w-full aspect-square object-cover rounded-lg border"
-                                                    />
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="icon"
-                                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        onClick={() => removeExistingImage(index)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* New Images */}
-                                {unitImages.length > 0 && (
-                                    <div className="space-y-3">
-                                        <Label>New Images (to be uploaded)</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {unitImages.map((file, index) => (
-                                                <div key={index} className="relative group">
-                                                    <Image
-                                                        src={URL.createObjectURL(file)}
-                                                        alt={`New ${index + 1}`}
-                                                        width={200}
-                                                        height={200}
-                                                        className="w-full aspect-square object-cover rounded-lg border"
-                                                    />
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="icon"
-                                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        onClick={() => removeUnitImage(index)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Upload Button */}
+            {/* Services Tab */}
+            <TabsContent value="services">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Services</CardTitle>
+                      <CardDescription>
+                        Services offered by your company
+                      </CardDescription>
+                    </div>
+                    <Button onClick={addService}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Service
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {services.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No services added yet. Click &quot;Add Service&quot; to
+                      start.
+                    </p>
+                  ) : (
+                    services.map((service, index) => (
+                      <Card
+                        key={index}
+                        className="border-l-4 border-l-blue-500"
+                      >
+                        <CardContent className="pt-6">
+                          <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="unitImages">Add More Images</Label>
-                                    <div className="flex items-center gap-4">
-                                        <Input
-                                            id="unitImages"
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={handleUnitImagesChange}
-                                        />
-                                        <Upload className="h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        You can select multiple images at once
-                                    </p>
+                                  <Label>Service Title</Label>
+                                  <Input
+                                    value={service.title}
+                                    onChange={(e) =>
+                                      updateService(
+                                        index,
+                                        "title",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="e.g., Custom Embroidery"
+                                  />
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-            </main>
-        </div>
+                                <div className="space-y-2">
+                                  <Label>Description</Label>
+                                  <Textarea
+                                    value={service.description}
+                                    onChange={(e) =>
+                                      updateService(
+                                        index,
+                                        "description",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Describe the service..."
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeService(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Images Tab */}
+            <TabsContent value="images">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Unit Images</CardTitle>
+                  <CardDescription>
+                    Upload images of your facility
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Existing Images */}
+                  {existingUnitImages.length > 0 && (
+                    <div className="space-y-3">
+                      <Label>Current Images</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {existingUnitImages.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <Image
+                              src={image}
+                              alt={`Unit ${index + 1}`}
+                              width={200}
+                              height={200}
+                              className="w-full aspect-square object-cover rounded-lg border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeExistingImage(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Images */}
+                  {unitImages.length > 0 && (
+                    <div className="space-y-3">
+                      <Label>New Images (to be uploaded)</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {unitImages.map((file, index) => (
+                          <div key={index} className="relative group">
+                            <Image
+                              src={URL.createObjectURL(file)}
+                              alt={`New ${index + 1}`}
+                              width={200}
+                              height={200}
+                              className="w-full aspect-square object-cover rounded-lg border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeUnitImage(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  <div className="space-y-2">
+                    <Label htmlFor="unitImages">Add More Images</Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="unitImages"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleUnitImagesChange}
+                      />
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      You can select multiple images at once
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
     );
 };
 

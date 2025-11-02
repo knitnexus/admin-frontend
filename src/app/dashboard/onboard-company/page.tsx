@@ -22,35 +22,38 @@ interface LocationData {
 }
 
 export interface FormDataType {
-    name: string;
-    contactNumber: string;
-    gstNumber: string;
-    aboutCompany: string;
-    workType: string;
-    unitType: string;
-    unitSqFeet: string;
-    certifications: string[];
-    companyLogo: File | null;
-    unitImages: File[];
-    location: LocationData | null;
-    machinery: MachineData[] // you can type more strictly later
-    services: { title: string; description: string }[];
+  name: string;
+  contactNumber: string;
+  gstNumber: string;
+  aboutCompany: string;
+  workType: string;
+  unitType: string;
+  unitSqFeet: string;
+  productionCapacity: string;
+  certifications: string[];
+  companyLogo: File | null;
+  unitImages: File[];
+  location: LocationData | null;
+  machinery: MachineData[]; // you can type more strictly later
+  services: { title: string; description: string }[];
 }
 const initialFormData: FormDataType = {
-    name: "",
-    contactNumber: "",
-    gstNumber: "",
-    aboutCompany: "",
-    workType: "",
-    unitType: "",
-    unitSqFeet: "",
-    certifications: [],
-    companyLogo: null,
-    unitImages: [],
-    location: null,
-    machinery: [],
-    services: [],
-}
+  name: "",
+  contactNumber: "",
+  gstNumber: "",
+  aboutCompany: "",
+  workType: "",
+  unitType: "",
+  unitSqFeet: "",
+  productionCapacity: "",
+
+  certifications: [],
+  companyLogo: null,
+  unitImages: [],
+  location: null,
+  machinery: [],
+  services: [],
+};
 
 export default function OnboardCompanyPage() {
     const router = useRouter();
@@ -102,6 +105,7 @@ export default function OnboardCompanyPage() {
             fd.append("contactNumber", form.contactNumber);
             fd.append("gstNumber", form.gstNumber);
             fd.append("aboutCompany", form.aboutCompany);
+            fd.append("productionCapacity", form.productionCapacity)
             fd.append("workType", form.workType);
             fd.append("unitType", form.unitType);
             fd.append("unitSqFeet", form.unitSqFeet);
